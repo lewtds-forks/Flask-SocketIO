@@ -17,7 +17,7 @@ class TestServer(object):
         return socket
 
     def remove_socket(self, socket):
-        for id, s in self.sockets.items():
+        for id, s in list(self.sockets.items()):
             if s == socket:
                 del self.sockets[id]
                 return

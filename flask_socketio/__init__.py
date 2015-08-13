@@ -9,7 +9,8 @@ from werkzeug.debug import DebuggedApplication
 from werkzeug.serving import run_with_reloader
 from werkzeug._internal import _log
 
-from test_client import SocketIOTestClient
+from .test_client import SocketIOTestClient
+import collections
 
 
 class _SocketIOMiddleware(object):
@@ -155,10 +156,10 @@ class SocketIO(object):
             request.event = {
                 "message": message,
                 "args": args}
-            for k, v in namespace.session.items():
+            for k, v in list(namespace.session.items()):
                 session[k] = v
             ret = self.messages[namespace.ns_name][message](*args)
-            for k, v in session.items():
+            for k, v in list(session.items()):
                 namespace.session[k] = v
             return ret
 
@@ -251,7 +252,7 @@ class SocketIO(object):
                           handler. Defaults to the global namespace.
         """
         def decorator(exception_handler):
-            if not callable(exception_handler):
+            if not isinstance(exception_handler, collections.Callable):
                 raise ValueError('exception_handler must be callable')
             self.exception_handlers[namespace] = exception_handler
         return decorator
@@ -267,7 +268,7 @@ class SocketIO(object):
             def error_handler(e):
                 print('An error has occurred: ' + str(e))
         """
-        if not callable(exception_handler):
+        if not isinstance(exception_handler, collections.Callable):
             raise ValueError('exception_handler must be callable')
         self.default_exception_handler = exception_handler
 
@@ -298,7 +299,7 @@ class SocketIO(object):
             for client in self.rooms.get(ns_name, {}).get(room, set()):
                 client.base_emit(event, *args, **kwargs)
         elif self.server:
-            for sessid, socket in self.server.sockets.items():
+            for sessid, socket in list(self.server.sockets.items()):
                 if socket.active_ns.get(ns_name):
                     socket[ns_name].base_emit(event, *args, **kwargs)
 
@@ -328,7 +329,7 @@ class SocketIO(object):
                 client.base_send(message, json)
         else:
             if self.server:
-                for sessid, socket in self.server.sockets.items():
+                for sessid, socket in list(self.server.sockets.items()):
                     if socket.active_ns.get(ns_name):
                         socket[ns_name].base_send(message, json)
 
